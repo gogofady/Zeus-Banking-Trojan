@@ -154,3 +154,87 @@ Results: The memory dump confirmed malicious activity.
 
 This analysis demonstrates the presence of Zeus Banking Trojan through memory analysis, process investigation, and artifact dumping for further correlation with known malware databases.
 
+##yara
+
+Author
+
+George Fady
+A cybersecurity enthusiast with expertise in malware analysis and threat detection.
+
+Metadata
+
+meta:
+    author = "George Fady"
+    description = "Advanced detection rule for Zeus variants"
+
+The meta section provides metadata for the rule:
+	•	Author: Specifies the rule creator.
+	•	Description: Indicates that the rule is intended to detect Zeus malware.
+
+Strings
+
+strings:
+    $PE_magic_byte = "MZ" ascii
+    $file_name = "invoice_2318362983713_823931342io.pdf.exe" ascii
+    $function_name = "CellrotoCrudUntohighCols" ascii
+    $hex_string = {43 61 6D 65 56 61 6C 65 57 61 75 6C 65 72}
+    $C2_domain = "zeus-malicious-domain.com" ascii
+    $mutex_name = "Global\\ZeusMutex" ascii
+    $malicious_API = "InternetOpenA" ascii
+
+Definitions
+	1.	$PE_magic_byte: "MZ" - Identifies PE files (e.g., Windows executables).
+	2.	$file_name: "invoice_2318362983713_823931342io.pdf.exe" - A suspicious file name mimicking legitimate files.
+	3.	$function_name: "CellrotoCrudUntohighCols" - Unique function name likely obfuscated within Zeus variants.
+	4.	$hex_string: Hexadecimal sequence {43 61 6D 65 56 61 6C 65 57 61 75 6C 65 72}.
+	5.	$C2_domain: "zeus-malicious-domain.com" - Command-and-control (C2) server domain.
+	6.	$mutex_name: "Global\\ZeusMutex" - Mutex name ensuring only one Zeus instance runs at a time.
+	7.	$malicious_API: "InternetOpenA" - API used for network connections to the C2 server.
+
+Condition
+
+condition:
+    $PE_magic_byte at 0 and
+    ($file_name or $function_name or $hex_string or $C2_domain or $mutex_name or $malicious_API)
+
+Breakdown
+	1.	$PE_magic_byte at 0: Confirms the file starts with the “MZ” header (PE file).
+	2.	Logical Condition: Matches if any of the defined strings are found:
+	•	File names
+	•	Function names
+	•	Hexadecimal patterns
+	•	Known C2 domains
+	•	Mutex names
+	•	Malicious APIs
+
+Usage
+
+To use the Zeus_Advanced rule, save it in a .yar file and run it against a file or memory dump using YARA.
+
+Example Command
+
+yara Zeus_Advanced.yar invoice_2318362983713_823931342io.pdf.exe
+
+Example Output
+
+If the file matches, YARA will output:
+
+Zeus_Advanced invoice_2318362983713_823931342io.pdf.exe
+
+Purpose
+
+The Zeus_Advanced rule is designed to detect Zeus malware variants by identifying:
+	•	Obfuscated file names or function names.
+	•	Connections to known malicious domains.
+	•	Unique mutex usage.
+	•	API calls often exploited by malware.
+
+By using this rule, analysts can flag potential Zeus infections and prioritize remediation.
+
+License
+
+This rule is free to use, modify, and distribute under the terms of the MIT License.
+
+Notes
+	•	Ensure YARA is installed and updated before running this rule.
+	•	The rule is optimized for Zeus variants but may yield false positives on non-malicious files with similar characteristics.
